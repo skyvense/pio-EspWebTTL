@@ -1,6 +1,6 @@
 {
   "SSID": "S1",
-  "Passwd": "YOUR_WIFI_PASSWORD",
+  "Passwd": "your password",
   "Server": "none", 
   "Token": "none"
 }
