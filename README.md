@@ -1,4 +1,4 @@
-# EspWebTTL
+# Esp266 WebTTL
 A very simple &amp; fast WebTTL based on ESP8266 Wifi Module, coding by PlatformIO/Arduino
 
 The program running on an ESP8266 board allows you to access your device TTL remotely from any device that has a browser.
@@ -19,7 +19,7 @@ The project is fully functioning and the speed of controlling TTL is the same as
 9. After the board is connected with wifi and got correct IP, like this:
 ![IP](/pic/desktop.jpg)
 
-10. Use a browser on your PC, enter the IP: http://<IP> and input your TTL wire baud rate, like:
+10. Use a browser on your PC, enter the IP: http://IP and input your TTL wire baud rate, like:
 ![Browser](/pic/browser.png)
 
 11. Then you should see the screen like this:
@@ -27,7 +27,7 @@ The project is fully functioning and the speed of controlling TTL is the same as
 
 
 ## Telnet/23 support
-You can also connect to <board IP>:23 with a telnet command from any internet/LAN device.
+You can also connect to IP:23 with a telnet command from any internet/LAN device.
 
 ## Input & Output contents sync
 All contents are sync displayed if multiple clients is connected, no matter telnet or browser
