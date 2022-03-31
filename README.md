@@ -1,4 +1,4 @@
-# Esp266 WebTTL
+# Esp8266 WebTTL
 A very simple &amp; fast WebTTL based on ESP8266 Wifi Module, coding by PlatformIO/Arduino
 
 The program running on an ESP8266 board allows you to access your device TTL remotely from any device that has a browser.
@@ -35,3 +35,15 @@ All contents are sync displayed if multiple clients is connected, no matter teln
 ## Works without an OLED display
 If you don't have an OLED display, you can got your IP ADDRESS from your router DHCP offered page. OR HERE: you can count the LED blink times after the Wifi Connected for 1 minute(TTL and network should be IDLE). Like, if your IP address is 192.168.2.15, the default LED on the board will BLINK 15 times!
 
+## LED blink
+The LED blinks with different rate while in different states:
+1. Under Wifi Smart Config, blink is very fast
+2. Under Connecting a Wifi, blink is slow
+3. The LED is ON constantly while the WIFI is CONNECTED.
+
+## Problems
+1. Telnet console will echo your typed character twice, this cannot be solved, but in some platforms, you may try to "TURN OFF LOCAL ECHO" to avoid this issue.
+2. While the TTL cable is connected to some boards(the boards pull down TX pin), the ESP8266 won't start, please disconnect the TTL cable before power on the board
+
+## For developers
+ Files under src/html is orignal seperated H5 client with multiple files, but after my debug, web server in ESP won't serve correctly with serveral requests simultaneously. So I merged all files into one html, which is located in /data/index_all.html
