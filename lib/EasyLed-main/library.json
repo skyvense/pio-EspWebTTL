@@ -1,0 +1,59 @@
+{
+    "name": "EasyLed",
+    "version": "1.1.0",
+    "keywords": ["led", "control", "blink", "easy"],
+    "description": "Arduino library for controlling standard LEDs in an easy way. EasyLed provides simple logical methods like led.on(), led.toggle(), led.flash(), led.isOff() and more. This library will help to write cleaner code that is easy to read and understand.",
+    "authors": 
+    {    
+        "name": "Leonel Lopes Parente",
+        "maintainer": true
+    },
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": "*",
+    "repository": 
+    {
+        "type": "git",
+        "url": "https://github.com/lnlp/EasyLed.git"
+    },
+    "examples": [
+        {
+            "name": "led-basics",
+            "base": "examples/led-basics",
+            "files": ["led-basics.ino"]
+        },
+        {
+            "name": "led-advanced",
+            "base": "examples/led-advanced",
+            "files": ["led-advanced.ino"]
+        },
+        {
+            "name": "led-state",
+            "base": "examples/led-state",
+            "files": ["led-state.ino"]
+        },
+        {
+            "name": "led-activelevel-tester",
+            "base": "examples/led-activelevel-tester",
+            "files": ["led-activelevel-tester.ino"]
+        }                        
+    ],
+    "export": {
+        "include":
+        [
+            "src/*",
+            "examples/*",
+            "LICENSE",
+            "README.md",
+            "library.properties",
+            "library.json",
+            "keywords.txt"
+        ],
+        "exclude":
+        [
+            ".gitignore",
+            ".github/",
+            ".git/"
+        ]
+    }        
+}

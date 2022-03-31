@@ -1,0 +1,16 @@
+EasyLed	KEYWORD1
+ActiveLevel	KEYWORD1
+State	KEYWORD1
+on	KEYWORD2
+off	KEYWORD2
+toggle	KEYWORD2
+reset	KEYWORD2
+flash	KEYWORD2
+isOff	KEYWORD2
+isOn	KEYWORD2
+setState	KEYWORD2
+getState	KEYWORD2
+activelevel	KEYWORD2
+initialState	KEYWORD2
+pin	KEYWORD2
+
