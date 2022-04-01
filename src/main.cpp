@@ -1,4 +1,28 @@
 
+/*
+    Esp WebTTL 
+    Copyright (c) 2022 Nate Zhang (skyvense@gmail.com)
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+*/
+
+
 #include <Arduino.h>
 #ifdef ESP32
 #include <WiFi.h>
@@ -44,6 +68,18 @@ int has_active = 0;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 void BaseConfig();
 
+struct EMPTY_SERIAL
+{
+  void println(const char *){}
+  void println(String){}
+  void printf(const char *, ...){}
+  void print(const char *){}
+  //void print(Printable) {}
+  void begin(int){}
+  void end(){}
+} _EMPTY_SERIAL;
+#define Serial_debug  _EMPTY_SERIAL
+
 //Wifi functions---------------------------------------------------------------
 struct Config {
   String SSID = "S1";
@@ -59,14 +95,14 @@ bool LoadConfig()
   File configFile = SPIFFS.open("/config.json", "r");
   if (!configFile)
   {
-    //Serial.println("Failed to open config file");
+    Serial_debug.println("Failed to open config file");
     return false;
   }
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, configFile);
   if (error)
   {
-    //Serial.println("Failed to read file, using default configuration");
+    Serial_debug.println("Failed to read file, using default configuration");
     return false;
   }
   _config.SSID = doc["SSID"] | "fail";
@@ -77,11 +113,11 @@ bool LoadConfig()
   }
   else
   {
-    //Serial.println("Load wifi config from spiffs successful.");
-    //Serial.print("Loaded ssid: ");
-    //Serial.println(_config.SSID);
-    //Serial.print("Loaded passwd: ");
-    //Serial.println(_config.Passwd);
+    Serial_debug.println("Load wifi config from spiffs successful.");
+    Serial_debug.print("Loaded ssid: ");
+    Serial_debug.println(_config.SSID);
+    Serial_debug.print("Loaded passwd: ");
+    Serial_debug.println(_config.Passwd);
     return true;
   }
 }
@@ -99,12 +135,12 @@ bool SaveConfig()
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile)
   {
-    //Serial.println("Failed to open config file for writing");
+    Serial_debug.println("Failed to open config file for writing");
     return false;
   }
   if (serializeJson(doc, configFile) == 0)
   {
-    //Serial.println("Failed to write to file");
+    Serial_debug.println("Failed to write to file");
     return false;
   }
   return true;
@@ -113,7 +149,7 @@ bool SaveConfig()
 
 void SmartConfig()
 {
-  //Serial.println("Use smart config to connect wifi.");
+  Serial_debug.println("Use smart config to connect wifi.");
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print("Wifi SmartConfig");
@@ -121,18 +157,18 @@ void SmartConfig()
   WiFi.beginSmartConfig();
   while (1)
   {
-    //Serial.println("Wait to connect wifi...");
+    Serial_debug.println("Wait to connect wifi...");
     led.flash(10, 50, 50, 0, 0);
     display.print(".");
     display.display();
     delay(1000);
     if (WiFi.smartConfigDone())
     {
-      //Serial.println("WiFi connected by smart config.");
-      //Serial.print("SSID:");
-      //Serial.println(WiFi.SSID());
-      //Serial.print("IP Address:");
-      //Serial.println(WiFi.localIP());
+      Serial_debug.println("WiFi connected by smart config.");
+      Serial_debug.print("SSID:");
+      Serial_debug.println(WiFi.SSID());
+      Serial_debug.print("IP Address:");
+      Serial_debug.println(WiFi.localIP().toString());
       display.print("Smartconfig connected.\nIP:");
       display.print(WiFi.localIP());
       display.println("");
@@ -144,11 +180,11 @@ void SmartConfig()
       _config.Passwd = WiFi.psk();
       if (!SaveConfig())
       {
-        //Serial.println("Failed to save config");
+        Serial_debug.println("Failed to save config");
       }
       else
       {
-        //Serial.println("Config saved");
+        Serial_debug.println("Config saved");
       }
       break;
     }
@@ -180,7 +216,7 @@ bool WiFiWatchDog()
 
 void BaseConfig()
 {
-  //Serial.println("Use base config to connect wifi.");
+  Serial_debug.println("Use base config to connect wifi.");
   led.flash(4, 125, 125, 0, 0);
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -192,14 +228,14 @@ void BaseConfig()
   int timeout = 30000;
   while (WiFi.status() != WL_CONNECTED)
   {
-    //Serial.println("Wait to connect wifi...");
+    Serial_debug.println("Wait to connect wifi...");
     display.print(".");
     display.display();
     delay(500);
     timeout = timeout - 300;
     if (timeout <= 0)
     {
-      //Serial.println("Wifi connect timeout, use smart config to connect...");
+      Serial_debug.println("Wifi connect timeout, use smart config to connect...");
       display.print("FAIL, begin SMARTCONFIG");
       display.display();
       SmartConfig();
@@ -208,11 +244,11 @@ void BaseConfig()
 
     led.flash(2, 125, 125, 0, 0);
   }
-  //Serial.println("WiFi connected by base config.");
-  //Serial.print("SSID:");
-  //Serial.println(WiFi.SSID());
-  //Serial.print("IP Address:");
-  //Serial.println(WiFi.localIP());
+  Serial_debug.println("WiFi connected by base config.");
+  Serial_debug.print("SSID:");
+  Serial_debug.println(WiFi.SSID());
+  Serial_debug.print("IP Address:");
+  Serial_debug.println(WiFi.localIP().toString());
   display.print("WiFi connected.\nIP:");
   display.print(WiFi.localIP());
   display.display();
@@ -236,10 +272,10 @@ void onEvent(AsyncWebSocket *server1, AsyncWebSocketClient *client, AwsEventType
     case WS_EVT_CONNECT:
       has_active = 1;
       last_active_time = now();
-      //Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      Serial_debug.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
-      //Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      Serial_debug.printf("WebSocket client #%u disconnected\n", client->id());
       break;
     case WS_EVT_DATA:
       handleWebSocketMessage(arg, data, len);
@@ -263,7 +299,7 @@ void initDisplay()
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
   {
-    //Serial.println(F("SSD1306 allocation failed"));
+    Serial_debug.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
   }
   display.clearDisplay();
@@ -274,10 +310,10 @@ void initDisplay()
 void initFS()
 {
   //Mount FS
-  //Serial.println("Mounting FS...");
+  Serial_debug.println("Mounting FS...");
   if (!SPIFFS.begin())
   {
-    //Serial.println("Failed to mount file system");
+    Serial_debug.println("Failed to mount file system");
     return;
   }
 }
@@ -287,6 +323,7 @@ void setup()
   led.off();
   Serial.setRxBufferSize(1024);
   Serial.begin(115200);
+  Serial_debug.begin(115200);
 
   randomSeed(analogRead(0));
   initDisplay();
@@ -311,7 +348,7 @@ void setup()
     {
       inputMessage = request->getParam("v")->value();
       rate = inputMessage.toInt();
-      //Serial.end();
+      Serial_debug.end();
       Serial.setRxBufferSize(1024);
       Serial.begin(rate);
     }
@@ -325,7 +362,7 @@ void setup()
   telnet_server.setNoDelay(true);
 
 
-  //Serial.println("Server started");
+  Serial_debug.println("Server started");
 
   led.on();
   last_active_time = now();
@@ -436,7 +473,7 @@ void loop(void)
       flashing_ip = 1;
     }
   }
-
+  Serial_debug.println("test.");
   CheckTelnetClientData();
   CheckSerialData();
 
