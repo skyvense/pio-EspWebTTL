@@ -39,19 +39,22 @@
 #include <Adafruit_SSD1306.h>
 #include <EasyLed.h>
 #include <TimeLib.h>
+#include <SPI.h>
+#include <SD.h>
+
+const int chipSelect = D8;
+File record_file;
+int record_file_opened = 0; //try once only at setup()
+File root;
 
 #define STATUS_LED  2
 EasyLed led(STATUS_LED, EasyLed::ActiveLevel::Low, EasyLed::State::On);  //Use this for an active-low LED
 //EasyLed led(STATUS_LED, EasyLed::ActiveLevel::High, EasyLed::State::On);  //Use this for an active-high LED
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-// The pins for I2C are defined by the Wire-library.
-// On an arduino UNO:       A4(SDA), A5(SCL)
-// On an arduino MEGA 2560: 20(SDA), 21(SCL)
-// On an arduino LEONARDO:   2(SDA),  3(SCL), ...
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 #define MAX_SRV_CLIENTS 5
@@ -79,6 +82,17 @@ struct EMPTY_SERIAL
   void end(){}
 } _EMPTY_SERIAL;
 #define Serial_debug  _EMPTY_SERIAL
+//#define Serial_debug  Serial
+
+void WriteSDFileRecord(uint8_t *buf, size_t len)
+{
+  if (record_file_opened == 1)
+  {
+    record_file.write(buf, len);
+    record_file.flush();
+  }
+}
+
 
 //Wifi functions---------------------------------------------------------------
 struct Config {
@@ -317,7 +331,38 @@ void initFS()
     return;
   }
 }
-
+/*
+void printDirectory(File dir, int numTabs) 
+{
+  int colcnt =0;
+  while(true) 
+  {
+    File entry =  dir.openNextFile();
+    if (!entry) 
+    {
+      // no more files
+      break;
+    }
+    if (numTabs > 0) 
+    {
+      for (uint8_t i=0; i<=numTabs; i++) {
+        Serial_debug.print('\t');
+      }
+    }
+    Serial_debug.print(entry.name());
+    if (entry.isDirectory()) {
+      Serial_debug.println("/");
+      printDirectory(entry, numTabs+1);
+    } else
+    {
+      // files have sizes, directories do not
+      Serial_debug.print("\t");
+      Serial_debug.println(entry.size(), DEC);
+    }
+    entry.close();
+  }
+}
+*/
 void setup()
 {
   led.off();
@@ -366,6 +411,30 @@ void setup()
 
   led.on();
   last_active_time = now();
+
+  {
+     if (!SD.begin(chipSelect)) 
+     { // CS is D8 in this example
+      Serial_debug.println("Initialising failed!");
+      return;
+    }
+    Serial_debug.println("SD Initialisation completed");
+    root = SD.open("/");
+    root.rewindDirectory();
+    //printDirectory(root, 0); //Display the card contents
+    root.close();
+    record_file = SD.open("esp_ttl_log.txt", FILE_WRITE);
+    if (record_file) record_file_opened = 1;
+    //if (record_file) record_file.print("esp_ttl_log");
+    //WriteSDFileRecord((uint8_t *)"abc", 3);
+    //record_file.close();
+    char szTemp[64];
+    sprintf(szTemp, "system started.\r\n");
+    WriteSDFileRecord((uint8_t* )szTemp, strlen(szTemp));
+  }
+
+ 
+  
 }
 
 //loop calls ----------------------------------------------------------------------------
@@ -455,6 +524,7 @@ void CheckSerialData()
         delay(1);
       }
     }
+    WriteSDFileRecord(sbuf, len);
   }
 }
 
@@ -473,7 +543,6 @@ void loop(void)
       flashing_ip = 1;
     }
   }
-  Serial_debug.println("test.");
   CheckTelnetClientData();
   CheckSerialData();
 
