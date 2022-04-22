@@ -25,12 +25,18 @@ The project is fully functioning and the speed of controlling TTL is the same as
 11. Then you should see the screen like this:
 ![RunningPic](/pic/running.png)
 
-
 ## Telnet/23 support
 You can also connect to IP:23 with a telnet command from any internet/LAN device.
 
 ## Input & Output contents sync
 All contents are sync displayed if multiple clients is connected, no matter telnet or browser
+
+## TTL Output Content cache
+Server will send last seen screen content to newly connected Web clients, this function make the user exprience much better than a blank screen while the connections initially made.
+
+## TF card logging support
+All TTL output contents will be stored to a file with a TF card connected via SPI interface.
+(this function is not wel tested, and may cause output delay)
 
 ## Works without an OLED display
 If you don't have an OLED display, you can got your IP ADDRESS from your router DHCP offered page. OR HERE: you can count the LED blink times after the Wifi Connected for 1 minute(TTL and network should be IDLE). Like, if your IP address is 192.168.2.15, the default LED on the board will BLINK 15 times!
