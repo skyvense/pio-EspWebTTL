@@ -41,6 +41,9 @@
 #include <TimeLib.h>
 #include <SPI.h>
 #include <SD.h>
+#include <CircularBuffer.h>
+
+CircularBuffer<uint8_t,2000> cached_screen_bytes; //A typical telnet screen is 80*25=2000
 
 const int chipSelect = D8;
 File record_file;
@@ -286,6 +289,17 @@ void onEvent(AsyncWebSocket *server1, AsyncWebSocketClient *client, AwsEventType
     case WS_EVT_CONNECT:
       has_active = 1;
       last_active_time = now();
+      {
+        //CircularBuffer<uint8_t,2000> cached_screen_bytes; 
+        uint8_t buf[cached_screen_bytes.size()];
+        CircularBuffer<uint8_t,2000>::index_t i;
+        for (i = 0; i < cached_screen_bytes.size(); i++)
+        {
+          buf[i] = cached_screen_bytes[i];
+        }
+        client->binary(buf, cached_screen_bytes.size());
+      }
+      
       Serial_debug.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
@@ -503,28 +517,37 @@ void CheckTelnetClientData()
 
 void CheckSerialData()
 {
-  uint8_t i;
+  uint32_t i;
   // check UART for data --------------------------
   if (Serial.available())
   {
     size_t len = Serial.available();
     uint8_t sbuf[len];
     Serial.readBytes(sbuf, len);
-    ws.binaryAll(sbuf, len);
-    display.print(">");
-    display.display();
-    led.flash(2, 20, 20, 0, 0);
-    last_active_time = now();
-    has_active = 1;
-    //push UART data to all connected telnet clients
-    for (i = 0; i < MAX_SRV_CLIENTS; i++)
+    if (len > 0)
     {
-      if (serverClients[i] && serverClients[i].connected()) {
-        serverClients[i].write(sbuf, len);
-        delay(1);
+      ws.binaryAll(sbuf, len);
+      display.print(">");
+      display.display();
+      led.flash(2, 20, 20, 0, 0);
+      last_active_time = now();
+      has_active = 1;
+      //push UART data to all connected telnet clients
+      for (i = 0; i < MAX_SRV_CLIENTS; i++)
+      {
+        if (serverClients[i] && serverClients[i].connected()) {
+          serverClients[i].write(sbuf, len);
+          delay(1);
+        }
+      }
+      WriteSDFileRecord(sbuf, len);
+      for (i = 0; i < len; i++)
+      {
+        cached_screen_bytes.push(sbuf[i]);
       }
     }
-    WriteSDFileRecord(sbuf, len);
+
+    
   }
 }
 
